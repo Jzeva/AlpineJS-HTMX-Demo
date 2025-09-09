@@ -1,0 +1,71 @@
+{% extends "tasks/base.html" %}
+{% block title %}Tasks — Demo{% endblock %}
+
+{% block content %}
+<h1>Tasks — Django + HTMX + Alpine</h1>
+
+<!-- Create form: POST, then append the returned <li> -->
+<form class="card row"
+      hx-post="{% url 'task-create' %}"
+      hx-target="#task-list"
+      hx-swap="beforeend"
+      x-data="{prio: 1}"
+      x-on:submit="$nextTick(()=>{ $el.reset(); prio = 1 })">
+  <input name="title" placeholder="Task title (required)" required />
+  <input name="details" placeholder="Details (optional)" />
+  <label>Priority
+    <select name="priority" x-model.number="prio">
+      <template x-for="n in [1,2,3,4,5]">
+        <option :value="n" x-text="n"></option>
+      </template>
+    </select>
+  </label>
+  <span class="pill" :style="{background: prio>=4 ? '#ffe9e9' : prio==3 ? '#fff6e0' : '#eef7ff'}">
+    Live badge (Alpine)
+  </span>
+  <button class="btn" type="submit">Add</button>
+</form>
+
+<!-- Search + filters: hx-include to carry the checkbox; hx-push-url to sync the URL -->
+<div class="row" style="margin-top:1rem">
+  <input name="q" placeholder="Search..."
+         hx-get="{% url 'task-search' %}"
+         hx-trigger="keyup changed delay:300ms"
+         hx-target="#task-list-wrap"
+         hx-swap="innerHTML"
+         hx-include="#done-only"
+         hx-push-url="true" />
+  <label class="row">
+    <input type="checkbox" id="done-only" name="done_only" value="1">
+    Done only
+  </label>
+  <button class="btn pill"
+          hx-get="{% url 'task-search' %}"
+          hx-target="#task-list-wrap"
+          hx-swap="innerHTML">
+    Refresh
+  </button>
+</div>
+
+<!-- List container (stable DIV target) -->
+<div id="task-list-wrap" style="margin-top:1rem">
+  {% include "tasks/_task_list.html" with tasks=tasks %}
+</div>
+
+<!-- Alpine modal (HTMX loads content inside) -->
+<div id="modal-root"
+     x-data="{open:false}"
+     x-show="open"
+     x-transition.opacity
+     x-on:open-modal.window="open = true"
+     class="modal-backdrop"
+     style="display:none">
+  <div class="modal">
+    <div id="modal-body" class="muted">Loading…</div>
+    <div class="row" style="justify-content:flex-end; margin-top:.5rem">
+      <button class="btn" @click="open=false">Close</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

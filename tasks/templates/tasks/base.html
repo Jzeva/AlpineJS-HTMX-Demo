@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}Django + HTMX + Alpine Demo{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .row { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    input, textarea, select, button { font: inherit; padding:.5rem .6rem; }
+    ul { list-style:none; padding:0; margin:0; display:grid; gap:.5rem; }
+    .card { border:1px solid #ddd; border-radius:10px; padding:.75rem; }
+    .muted { color:#666; }
+    .pill { border-radius:999px; padding:.15rem .5rem; border:1px solid #ddd; font-size:.85rem; }
+    .done { text-decoration: line-through; color:#888; }
+    .btn { cursor:pointer; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; }
+    .modal { background:#fff; border-radius:12px; padding:1rem; max-width:560px; width:92%; }
+  </style>
+  <style>[x-cloak]{ display:none !important; }</style>
+  {% csrf_token %}
+<script>
+  // Attach CSRF token from the "csrftoken" cookie to ALL HTMX requests
+  document.addEventListener('htmx:configRequest', (e) => {
+    const m = document.cookie.match(/(^|;\s*)csrftoken=([^;]+)/);
+    if (m) e.detail.headers['X-CSRFToken'] = decodeURIComponent(m[2]);
+  });
+</script>
+<script>
+  document.addEventListener('htmx:afterSwap', (e) => {
+    // 对刚刚被替换/插入的区域重新初始化 Alpine
+    if (window.Alpine) Alpine.initTree(e.target);
+  });
+</script>
+
+</head>
+<body>
+  <div class="wrap">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

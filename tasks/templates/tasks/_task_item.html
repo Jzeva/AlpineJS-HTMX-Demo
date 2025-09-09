@@ -1,0 +1,63 @@
+<li class="card"
+    x-data="{editing:false}"
+    :class="{'done': {{ t.is_done|yesno:'true,false' }} }">
+  <div class="row" style="justify-content:space-between">
+    <div>
+      <strong>{{ t.title }}</strong>
+      <span class="pill">P{{ t.priority }}</span>
+      {% if t.is_done %}<span class="pill">Done</span>{% endif %}
+      {% if t.details %}<div class="muted">{{ t.details }}</div>{% endif %}
+      <div class="muted" style="font-size:.85rem">Created: {{ t.created_at|date:"Y-m-d H:i" }}</div>
+    </div>
+    <div class="row">
+      <!-- Toggle done (replace just this li) -->
+      <button class="btn"
+              hx-post="{% url 'task-toggle' t.pk %}"
+              hx-target="closest li"
+              hx-swap="outerHTML">
+        {% if t.is_done %}Mark Undone{% else %}Mark Done{% endif %}
+      </button>
+
+      <!-- Open details modal (HTMX loads body; Alpine opens modal) -->
+      <button class="btn"
+              hx-get="{% url 'task-detail' t.pk %}"
+              hx-target="#modal-body"
+              hx-swap="innerHTML"
+              hx-on::after-request="window.dispatchEvent(new CustomEvent('open-modal'))">
+        Details
+      </button>
+
+      <!-- Edit toggle purely in front-end -->
+      <button class="btn" @click="editing = !editing" x-text="editing ? 'Cancel' : 'Edit'"></button>
+
+      <!-- Delete just this li -->
+      <button class="btn"
+              hx-post="{% url 'task-delete' t.pk %}"
+              hx-target="closest li"
+              hx-swap="delete"
+              hx-confirm="Delete this task?">
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Inline edit (when editing) -->
+  <form class="row" x-show="editing" x-transition 
+        x-cloak
+        hx-post="{% url 'task-update' t.pk %}"
+        hx-target="closest li"
+        hx-swap="outerHTML">
+    <input name="title" value="{{ t.title }}" placeholder="Title" required />
+    <input name="details" value="{{ t.details }}" placeholder="Details" />
+    <select name="priority">
+      {% for _ in "12345" %}
+        <option value="{{ forloop.counter }}"
+          {% if t.priority == forloop.counter %}selected{% endif %}>
+          {{ forloop.counter }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <button class="btn" type="submit">Save</button>
+  </form>
+</li>

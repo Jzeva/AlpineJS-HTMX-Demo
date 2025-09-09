@@ -1,0 +1,9 @@
+<ul id="task-list">
+  {% if tasks %}
+    {% for t in tasks %}
+      {% include "tasks/_task_item.html" with t=t %}
+    {% endfor %}
+  {% else %}
+    <li class="muted"><em>No tasks yet. Add one above.</em></li>
+  {% endif %}
+</ul>
